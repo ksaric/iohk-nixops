@@ -14,7 +14,7 @@ testIndex: region: connectivity:
       ];
 
       services.cardano-node = {
-        initialPeers = genPeersFromConfig (
+        initialKademliaPeers = genPeersFromConfig (
           if (cfg.enableP2P && !cfg.productionMode)
           then [head cardanoNodeConfigs]
           else cardanoNodeConfigs
