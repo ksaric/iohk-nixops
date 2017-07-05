@@ -20,6 +20,7 @@ let
   # > genPeers ["ip:port/dht" "ip:port/dht" ...]
   # "--kademlia-peer ip:port/dht --peer ip:port/dht ..."
   genInitialKademliaPeers = peers: toString (map (p: "--kademlia-peer " + p) peers);
+  genStaticPeers          = peers: toString (map (p: "--static-peer "   + p) peers);
 
   command = toString [
     cfg.executable
@@ -52,6 +53,7 @@ let
     "--log-config ${./../static/csl-logging.yaml}"
     "--logs-prefix /var/lib/cardano-node"
     (optionalString (!cfg.enableP2P) "--kademlia-explicit-initial --disable-propagation ${smartGenPeer}")
+    (genStaticPeers          cfg.staticPeers)
     (genInitialKademliaPeers cfg.initialKademliaPeers)
   ];
 in {
@@ -61,6 +63,7 @@ in {
       port = mkOption { type = types.int; default = 3000; };
       systemStart = mkOption { type = types.int; default = 0; };
 
+      staticPeers = mkOption { type = types.nullOr (types.listOf types.str); default = null; };
       enableP2P = mkOption { type = types.bool; default = false; };
       supporter = mkOption { type = types.bool; default = false; };
       dhtKey = mkOption {
@@ -139,6 +142,9 @@ in {
     { assertion = cfg.initialKademliaPeers != null;
       message = "services.cardano-node.initialKademliaPeers must be set, even if to an empty list (testIndex: ${toString cfg.testIndex})"; }
 
+    { assertion = cfg.staticPeers != null;
+      message = "services.cardano-node.staticPeers must be set, even if to an empty list (testIndex: ${toString cfg.testIndex})"; }
+    ];
 
     users = {
       users.cardano-node = {
