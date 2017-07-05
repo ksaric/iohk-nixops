@@ -11,6 +11,11 @@ let
     configureFlags = flags;
   });
 
+  githubSrc     =      repo: rev: sha256:       pkgs.fetchgit  { url = "https://github.com/" + repo; rev = rev; sha256 = sha256; };
+  overC         =                               pkgs.haskell.lib.overrideCabal;
+  overCabal     = old:                    args: overC old (oldAttrs: (oldAttrs // args));
+  overGithub    = old: repo: rev: sha256: args: overC old ({ src = githubSrc repo rev sha256; }     // args);
+
   socket-io-src = pkgs.fetchgit (removeAttrs (importJSON ./pkgs/engine-io.json) ["date"]);
   iohkpkgs = ((import pkgs/default.nix { inherit pkgs compiler; }).override {
   overrides = self: super: {
@@ -50,14 +55,22 @@ let
     cardano-sl-explorer = prodMode (super.callPackage ./pkgs/cardano-sl-explorer.nix { });
     cardano-sl-explorer-static = justStaticExecutables self.cardano-sl-explorer;
 
+    amazonka         = overGithub  super.amazonka      "brendanhay/amazonka"
+                       "97552c16faabccbc2a2e95b3cd5c0b2b2c19062d" "0ahdyizz2bqsnzj2mgl6qqp9433kkil0xffl5l50kmqhamixkgs7" { doCheck = false; preCompileBuildDriver = "cd amazonka"; };
+    amazonka-core    = overGithub  super.amazonka-core "brendanhay/amazonka"
+                       "97552c16faabccbc2a2e95b3cd5c0b2b2c19062d" "0ahdyizz2bqsnzj2mgl6qqp9433kkil0xffl5l50kmqhamixkgs7" { doCheck = false; preCompileBuildDriver = "cd core"; };
+    amazonka-ec2     = overGithub  super.amazonka-ec2  "brendanhay/amazonka"
+                       "97552c16faabccbc2a2e95b3cd5c0b2b2c19062d" "0ahdyizz2bqsnzj2mgl6qqp9433kkil0xffl5l50kmqhamixkgs7" { doCheck = false; preCompileBuildDriver = "cd amazonka-ec2"; };
+
     #mkDerivation = args: super.mkDerivation (args // {
     #enableLibraryProfiling = false;
     #});
+
+    iohk-ops =  super.callCabal2nix "iohk-ops" ./iohk {};
   };
 });
   cabal2nixpkgs = rec {
     # extra packages to expose, that have no relation to pkgs/default.nix
     stack2nix = compiler.callPackage ./pkgs/stack2nix.nix {};
-    iohk-ops =  compiler.callCabal2nix "iohk-ops" ./iohk {};
   };
 in iohkpkgs // cabal2nixpkgs

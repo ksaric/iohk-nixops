@@ -34,6 +34,7 @@ drvf =
 ,   aeson, base, cassava, jq, lens-aeson, nix-prefetch-git, safe, turtle, utf8-string, vector, yaml
 ,   stack2nix, cabal2nix, cabal-install, intero
 ,   iohk-ops
+,   amazonka, amazonka-core, amazonka-ec2
 }:
 mkDerivation {
   pname = "iohk-shell-env";
@@ -47,6 +48,7 @@ mkDerivation {
     stack2nix  cabal2nix  cabal-install  intero
     pkgs.stack
     iohk-ops
+    amazonka amazonka-core amazonka-ec2
   ];
   shellHook =
   ''
@@ -56,6 +58,6 @@ mkDerivation {
   license      = stdenv.lib.licenses.mit;
 };
 
-drv = pkgs.haskellPackages.callPackage drvf { inherit (iohkpkgs) stack2nix iohk-ops; };
+drv = ghc.callPackage drvf { inherit (iohkpkgs) stack2nix iohk-ops amazonka amazonka-core amazonka-ec2; };
 
 in if pkgs.lib.inNixShell then drv.env else drv

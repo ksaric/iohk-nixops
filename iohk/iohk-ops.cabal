@@ -25,6 +25,9 @@ executable iohk-ops
   other-extensions:    DeriveGeneric, GeneralizedNewtypeDeriving, OverloadedStrings, RecordWildCards, TupleSections, ViewPatterns
 
   build-depends:       aeson >=0.11
+                     , amazonka
+                     , amazonka-core
+                     , amazonka-ec2
                      , base >=4.9
                      , bytestring >=0.10
                      , cassava >=0.4
