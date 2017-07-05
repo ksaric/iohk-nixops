@@ -14,6 +14,7 @@ import           Turtle                    hiding (procs, shells)
 import           NixOps                           (Branch(..), Commit(..), Environment(..), Deployment(..), Target(..)
                                                   ,Options(..), NixopsCmd(..), Region(..), URL(..)
                                                   ,showT, cmd, incmd)
+import qualified Cluster                       as Cluster
 import qualified NixOps                        as Ops
 import qualified CardanoCSL                    as Cardano
 import qualified Timewarp                      as Timewarp
@@ -53,7 +54,8 @@ parserDo = (\(a, b, c, d) -> concat $ maybeToList <$> [a, b, c, d])
 --
 data Command where
 
-  -- * setup 
+  -- * setup
+  GenCluster            :: Maybe Turtle.FilePath -> Command
   Template              :: { tNodeLimit   :: Integer
                            , tHere        :: Bool
                            , tFile        :: Maybe Turtle.FilePath
@@ -110,6 +112,8 @@ centralCommandParser =
                                 <*> parserTarget
                                 <*> parserBranch "iohk-nixops branch to check out"
                                 <*> parserDeployments)
+    , ("gen-cluster",           "Write 'cluster.nix': from a cluster SPEC file, or a default one.",
+                                GenCluster      <$> optional (argPath "SPEC" "Path to the cluster specification file."))
     , ("set-cardano-rev",       "Set cardano-sl commit to COMMIT",
                                 SetCardanoRev   <$> parserCommit "Commit to set 'cardano-sl' version to")
     , ("set-explorer-rev",      "Set cardano-sl-explorer commit to COMMIT",
@@ -171,6 +175,7 @@ main = do
 
   case topcmd of
     Template{..}             -> runTemplate        o topcmd
+    GenCluster      _        -> runGenCluster      o topcmd
     SetCardanoRev   commit   -> runSetCardanoRev   o commit
     SetExplorerRev  commit   -> runSetExplorerRev  o commit
     SetStack2NixRev commit   -> runSetStack2NixRev o commit
@@ -236,6 +241,7 @@ main = do
             PrintDate                -> getNodeNames'
                                         >>= Cardano.printDate        o c
             Template{..}             -> error "impossible"
+            GenCluster _             -> error "impossible"
             SetCardanoRev   _        -> error "impossible"
             SetExplorerRev  _        -> error "impossible"
             SetStack2NixRev _        -> error "impossible"
@@ -264,7 +270,15 @@ runTemplate o@Options{..} Template{..} = do
   echo ""
   echo $ "-- " <> (unsafeTextToLine $ configFilename) <> " is:"
   cmd o "cat" [configFilename]
-runTemplate Options{..} _ = error "impossible"
+runTemplate _ _ = error "impossible"
+
+runGenCluster :: Options -> Command -> IO ()
+runGenCluster Options{..} (GenCluster cfg) = do
+  nodes <- case cfg of
+             Nothing -> pure Cluster.currentCluster
+             Just cf -> Cluster.readConfig $ Path.encodeString cf
+  Cluster.writeNixopsSpec "cluster.nix" nodes
+runGenCluster _ _ = error "impossible"
 
 runSetCardanoRev, runSetExplorerRev, runSetStack2NixRev :: Options -> Commit -> IO ()
 runSetCardanoRev o rev = do
