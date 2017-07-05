@@ -1,7 +1,8 @@
 # TODO: get rid of this duplication between config.nix and modules/cardano-node.nix
+# XXX: rename this file:  cardano-node-config vs. cardano-nodes-config is CRUEL
 with (import ./../lib.nix);
 
-testIndex: region:
+testIndex: region: connectivity:
   { pkgs, ...}: {
     imports = [
       ./common.nix
