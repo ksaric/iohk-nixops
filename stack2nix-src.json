@@ -1,7 +1,7 @@
 {
   "url": "https://github.com/input-output-hk/stack2nix.git",
-  "rev": "2eedc3a6f3b72e42bdfbe7b6f908144a30f14180",
-  "date": "2017-07-08T00:44:42+03:00",
-  "sha256": "1l0jpxjwmv55396xbvc7x6h8d8zgn7x0kmn9kwknw058nqq1749x",
+  "rev": "fd4ae54caddd2802506aaa0a5e0f38ddb473bdcb",
+  "date": "2017-07-08T02:50:42+03:00",
+  "sha256": "09crc4q3b708v5wr3m11bwzkzczkw4idm1k6mqpgl6bk9agg09zw",
   "fetchSubmodules": true
 }
