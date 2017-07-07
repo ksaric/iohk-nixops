@@ -224,6 +224,7 @@ nixopsCmdOptions Options{..} NixopsConfig{..} =
 
 data NixopsConfig = NixopsConfig
   { cName             :: Text
+  , cNixpkgsCommit    :: Commit
   , cEnvironment      :: Environment
   , cTarget           :: Target
   , cElements         :: [Deployment]
@@ -233,6 +234,7 @@ data NixopsConfig = NixopsConfig
 instance FromJSON NixopsConfig where
     parseJSON = AE.withObject "NixopsConfig" $ \v -> NixopsConfig
         <$> v .: "name"
+        <*> v .: "nixpkgs"
         <*> v .: "environment"
         <*> v .: "target"
         <*> v .: "elements"
@@ -244,6 +246,7 @@ instance ToJSON Deployment
 instance ToJSON NixopsConfig where
   toJSON NixopsConfig{..} = AE.object
    [ "name"        .= cName
+   , "nixpkgs    " .= fromCommit cNixpkgsCommit
    , "environment" .= showT cEnvironment
    , "target"      .= showT cTarget
    , "elements"    .= cElements
@@ -256,8 +259,8 @@ deploymentFiles cEnvironment cTarget cElements =
   concat (elementDeploymentFiles cEnvironment cTarget <$> cElements)
 
 -- | Interpret inputs into a NixopsConfig
-mkConfig :: Branch -> Environment -> Target -> [Deployment] -> Integer -> NixopsConfig
-mkConfig (Branch cName) cEnvironment cTarget cElements nodeLimit =
+mkConfig :: Branch -> Commit -> Environment -> Target -> [Deployment] -> Integer -> NixopsConfig
+mkConfig (Branch cName) cNixpkgsCommit cEnvironment cTarget cElements nodeLimit =
   let cFiles    = deploymentFiles cEnvironment cTarget cElements
       cDeplArgs = selectDeploymentArgs cEnvironment cElements nodeLimit
   in NixopsConfig{..}
