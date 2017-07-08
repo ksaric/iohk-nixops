@@ -187,6 +187,7 @@ in {
         key = keyId + ".sk";
       in ''
         [ -f /run/keys/${keyId} ] && cp /run/keys/${keyId} ${stateDir}${key}
+        ulimit -c unlimited
         exec ${command}
       '';
       serviceConfig = {
